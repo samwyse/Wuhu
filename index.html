@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Persistent Shift List</title>
+  <title>Flight Record</title>
   <style>
     .item {
       margin-bottom: 15px;
@@ -22,7 +22,7 @@
 </head>
 <body>
   <form id="itemForm">
-    <h2>Shifts</h2>
+    <h2>Time of Day</h2>
 
     <div id="itemContainer"></div>
 
@@ -37,7 +37,7 @@
       <button type="button" class="removeBtn">➖ Remove</button>
     </fieldset>
 
-    <button type="button" id="addItemBtn">➕ Add Shift</button>
+    <button type="button" id="addItemBtn">➕ Add Time of Day</button>
 
     <div style="margin-top: 15px;">
       <button type="submit">Submit</button>
@@ -47,7 +47,7 @@
   <pre id="output"></pre>
 
   <script>
-    const STORAGE_KEY = 'shiftList';
+    const STORAGE_KEY = 'todList';
     const itemContainer = document.getElementById('itemContainer');
     const addItemBtn = document.getElementById('addItemBtn');
     const template = document.getElementById('itemTemplate');
