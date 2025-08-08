@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Persistent Shift List</title>
+  <style>
+    .item {
+      margin-bottom: 15px;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+    .hidden {
+      display: none;
+    }
+    label {
+      margin-right: 10px;
+    }
+    .removeBtn {
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <form id="itemForm">
+    <h2>Shifts</h2>
+
+    <div id="itemContainer"></div>
+
+    <!-- Template (disabled and hidden) -->
+    <fieldset id="itemTemplate" class="item hidden" disabled>
+      <label>Name: <input type="text" name="name" /></label><br/>
+
+      <label><input type="checkbox" name="day" /> Day</label>
+      <label><input type="checkbox" name="evening" /> Evening</label>
+      <label><input type="checkbox" name="night" /> Night</label>
+
+      <button type="button" class="removeBtn">➖ Remove</button>
+    </fieldset>
+
+    <button type="button" id="addItemBtn">➕ Add Shift</button>
+
+    <div style="margin-top: 15px;">
+      <button type="submit">Submit</button>
+    </div>
+  </form>
+
+  <pre id="output"></pre>
+
+  <script>
+    const STORAGE_KEY = 'shiftList';
+    const itemContainer = document.getElementById('itemContainer');
+    const addItemBtn = document.getElementById('addItemBtn');
+    const template = document.getElementById('itemTemplate');
+    const output = document.getElementById('output');
+
+    // Add a new item, optionally populated from data
+    function createNewItem(data = { name: '', day: false, evening: false, night: false }) {
+      const newItem = template.cloneNode(true);
+      newItem.disabled = false;
+      newItem.classList.remove('hidden');
+      newItem.removeAttribute('id');
+
+      const nameInput = newItem.querySelector('input[name="name"]');
+      const dayBox = newItem.querySelector('input[name="day"]');
+      const eveningBox = newItem.querySelector('input[name="evening"]');
+      const nightBox = newItem.querySelector('input[name="night"]');
+
+      nameInput.value = data.name || '';
+      dayBox.checked = !!data.day;
+      eveningBox.checked = !!data.evening;
+      nightBox.checked = !!data.night;
+
+      // Disable checked boxes
+      [dayBox, eveningBox, nightBox].forEach(checkbox => {
+        if (checkbox.checked) checkbox.disabled = true;
+
+        checkbox.addEventListener('change', () => {
+          if (checkbox.checked) checkbox.disabled = true;
+          saveToLocalStorage();
+        });
+      });
+
+      nameInput.addEventListener('input', saveToLocalStorage);
+
+      // Remove button
+      newItem.querySelector('.removeBtn').addEventListener('click', () => {
+        itemContainer.removeChild(newItem);
+        saveToLocalStorage();
+      });
+
+      itemContainer.appendChild(newItem);
+    }
+
+    // Get current form data
+    function getCurrentData() {
+      const items = [];
+      itemContainer.querySelectorAll('.item').forEach(fieldset => {
+        const name = fieldset.querySelector('input[name="name"]').value.trim();
+        const day = fieldset.querySelector('input[name="day"]').checked;
+        const evening = fieldset.querySelector('input[name="evening"]').checked;
+        const night = fieldset.querySelector('input[name="night"]').checked;
+        items.push({ name, day, evening, night });
+      });
+      return items;
+    }
+
+    // Save current list to localStorage
+    function saveToLocalStorage() {
+      const data = getCurrentData();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    // Load list from localStorage
+    function loadFromLocalStorage() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const items = JSON.parse(saved);
+          if (Array.isArray(items)) {
+            items.forEach(item => createNewItem(item));
+          }
+        } catch (e) {
+          console.error('Error parsing saved data:', e);
+        }
+      } else {
+        createNewItem(); // start with one empty row
+      }
+    }
+
+    // Handle submit
+    document.getElementById('itemForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const data = getCurrentData();
+      output.textContent = JSON.stringify(data, null, 2);
+    });
+
+    // Add button
+    addItemBtn.addEventListener('click', () => {
+      createNewItem();
+      saveToLocalStorage();
+    });
+
+    // Initial load
+    loadFromLocalStorage();
+  </script>
+</body>
+</html>
